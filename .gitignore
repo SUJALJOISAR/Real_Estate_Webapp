@@ -7,6 +7,14 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Client Node Modules
+client/node_modules
+
+# Backend
+backend/.env
+backend/node_modules
+
+# Build outputs
 node_modules
 dist
 dist-ssr
@@ -22,3 +30,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Miscellaneous
+Thumbs.db
+ehthumbs.db
+*.iml
