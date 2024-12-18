@@ -1,15 +1,53 @@
-import React from 'react';
+import {useState} from 'react';
 import { FaGoogle } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+
 
 const Register = () => {
+  const [formData,setFormData]= useState({
+    username:'',
+    email:'',
+    password:'',
+  });
+
+  const navigate=useNavigate();
+
+  //Handle input changes
+  const handleChange = (e) =>{
+    const {name,value} = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  }
+
+  //Handle Form Submission
+  const handleSubmit = async (e) =>{
+    e.preventDefault();
+    try {
+      const response = await axios.post('/auth/register',formData);
+      if(response.status === 201){
+        toast.success("Registration Successful!");
+        setTimeout(() => {
+          navigate('/signin');
+        }, 1000);
+      }
+    } catch (error) {
+      const errorMessage = error.response && error.response.data.message ? error.response.data.message : 'Something went Wrong.Please try again later';
+      toast.error(errorMessage);
+    }
+  }
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-slate-100">
       <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
         <h2 className="text-2xl font-bold text-slate-700 mb-6 text-center">
           Create an Account
         </h2>
-        <form className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="username" className="block text-slate-600 mb-1">
               Username
@@ -17,6 +55,9 @@ const Register = () => {
             <input
               type="text"
               id="username"
+              name='username'
+              value={formData.username}
+              onChange={handleChange}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-slate-300"
               placeholder="Enter your username"
               required
@@ -29,6 +70,9 @@ const Register = () => {
             <input
               type="email"
               id="email"
+              name='email'
+              value={formData.email}
+              onChange={handleChange}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-slate-300"
               placeholder="Enter your email"
               required
@@ -41,6 +85,9 @@ const Register = () => {
             <input
               type="password"
               id="password"
+              name='password'
+              value={formData.password}
+              onChange={handleChange}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-slate-300"
               placeholder="Enter your password"
               required
