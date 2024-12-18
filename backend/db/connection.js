@@ -1,12 +1,14 @@
 import mysql from 'mysql2';
 
+let db; //To hold the single database connection instance
+
 export const connectDatabase = () => {
   try {
     const db = mysql.createConnection({
-      host: 'localhost',
-      user: 'root',
-      password: process.env.DATABASE_PASS, // Correctly reference env variable
-      database: 'real_estate',
+      host: process.env.DATABASE_HOST,
+      user: process.env.DATABASE_USER,
+      password: process.env.DATABASE_PASS, 
+      database: process.env.DATABASE_NAME,
     });
 
     db.connect((err) => {

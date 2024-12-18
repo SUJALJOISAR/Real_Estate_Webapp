@@ -1,6 +1,7 @@
 import { FaSearch, FaHome, FaInfoCircle, FaUser, FaBars, FaTimes } from 'react-icons/fa';
 import { useState } from 'react';
 import PropertyBazzarlogo from '../assets/propertybazzarlogo.png';
+import { Link } from 'react-router-dom';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false); // State for toggling menu visibility
@@ -45,13 +46,17 @@ export default function Header() {
         <nav className="hidden md:block">
           <ul className="flex items-center gap-6 text-sm sm:text-base">
             <li className="text-slate-700 hover:text-slate-900 flex items-center gap-1 cursor-pointer">
-              <FaHome className="text-lg" /> <span>Home</span>
+              <FaHome className="text-lg" /> <span>
+                <Link to="/">Home</Link>
+              </span>
             </li>
             <li className="text-slate-700 hover:text-slate-900 flex items-center gap-1 cursor-pointer">
               <FaInfoCircle className="text-lg" /> <span>About</span>
             </li>
             <li className="text-slate-700 hover:text-slate-900 flex items-center gap-1 cursor-pointer">
-              <FaUser className="text-lg" /> <span>Sign In</span>
+              <FaUser className="text-lg" /> <span>
+                <Link to="/register">Register</Link>
+              </span>
             </li>
           </ul>
         </nav>
