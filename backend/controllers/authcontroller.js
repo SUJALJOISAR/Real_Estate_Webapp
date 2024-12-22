@@ -140,7 +140,8 @@ export const signin = async (req,res) =>{
             const token = jwt.sign(
                 {
                 id: user.id,
-                email: user.email
+                email: user.email,
+                username: user.username
                 },
                 process.env.JWT_SECRET,
                 {expiresIn:"1d"} //Token expiration
@@ -159,6 +160,7 @@ export const signin = async (req,res) =>{
                 return res.status(200).json({
                     success: true,
                     msg: "Sign-in successful",
+                    token,
                     user: {
                       id: user.id,
                       username: user.username,
@@ -174,3 +176,51 @@ export const signin = async (req,res) =>{
         });
     }
 }
+
+export const getUserProfile = (req,res)=>{
+  try {
+    const {id,email,username} = req.user;
+
+  if(!id || !email || !username){
+    return res.status(400).json({
+      success: false,
+      msg: "User data is incomplete or invalid.",
+    });
+  }
+
+  // Successful response with user data
+  return res.status(200).json({
+    success: true,
+    msg: "User profile fetched successfully.",
+    user: {
+      id,
+      email,
+      username,
+    },
+  });
+  } catch (error) {
+    console.error("Error fetching user profile:", error.message);
+    return res.status(500).json({
+      success: false,
+      msg: "Internal server error while fetching user profile.",
+    });
+  }
+}
+
+export const logout = async (req, res) => {
+  try {
+    const cookie = process.env.COOKIE_NAME;
+    console.log("Clearing cookie: ", cookie); // Log cookie name
+    res.clearCookie(cookie);
+    return res.status(200).json({
+      msg: "User logout Successfully!!",
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      msg: "Server error",
+      success: false,
+    });
+  }
+};

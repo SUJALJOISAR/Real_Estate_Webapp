@@ -1,9 +1,10 @@
-import {useState} from 'react';
+import {useContext, useState} from 'react';
 import { FaGoogle } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+// import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { AuthContext } from '../context-api/authContext';
 
 
 const Register = () => {
@@ -12,28 +13,29 @@ const Register = () => {
     email:'',
     password:'',
   });
-
+  const {register} = useContext(AuthContext);
   const navigate=useNavigate();
 
   //Handle input changes
   const handleChange = (e) =>{
-    const {name,value} = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+   setFormData({
+    ...formData,
+    [e.target.name]:e.target.value
+   });
   }
 
   //Handle Form Submission
   const handleSubmit = async (e) =>{
     e.preventDefault();
     try {
-      const response = await axios.post('/auth/register',formData);
-      if(response.status === 201){
-        toast.success("Registration Successful!");
+      const {success,message} = await register(formData);
+      if(success){
+        toast.success(message);
         setTimeout(() => {
           navigate('/signin');
         }, 1000);
+      }else{
+        toast.error(message);
       }
     } catch (error) {
       const errorMessage = error.response && error.response.data.message ? error.response.data.message : 'Something went Wrong.Please try again later';

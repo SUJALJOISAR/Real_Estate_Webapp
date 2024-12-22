@@ -1,13 +1,25 @@
 import { FaSearch, FaHome, FaInfoCircle, FaUser, FaBars, FaTimes } from 'react-icons/fa';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import PropertyBazzarlogo from '../assets/propertybazzarlogo.png';
 import { Link } from 'react-router-dom';
+import { AuthContext } from '../context-api/authContext';
+
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false); // State for toggling menu visibility
+  const [dropdownOpen, setDropdownOpen] = useState(false); // State for toggling dropdown visibility
+  const { user, signOut } = useContext(AuthContext); // Access user and signOut from AuthContext
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
+  };
+
+  const toggleDropdown = () => {
+    setDropdownOpen(!dropdownOpen);
+  };
+
+  const handleLogout = () => {
+    signOut(); // Call the signOut function from AuthContext
   };
 
   return (
@@ -28,9 +40,8 @@ export default function Header() {
 
         {/* Search Bar */}
         <form
-          className={`bg-white border border-slate-300 rounded-full flex items-center overflow-hidden shadow-sm ${
-            menuOpen ? 'hidden sm:flex' : 'hidden md:flex'
-          }`}
+          className={`bg-white border border-slate-300 rounded-full flex items-center overflow-hidden shadow-sm ${menuOpen ? 'hidden sm:flex' : 'hidden md:flex'
+            }`}
         >
           <input
             type="text"
@@ -53,11 +64,43 @@ export default function Header() {
             <li className="text-slate-700 hover:text-slate-900 flex items-center gap-1 cursor-pointer">
               <FaInfoCircle className="text-lg" /> <span>About</span>
             </li>
-            <li className="text-slate-700 hover:text-slate-900 flex items-center gap-1 cursor-pointer">
-              <FaUser className="text-lg" /> <span>
+            {user ? (
+              <li className="relative">
+                <button
+                  onClick={toggleDropdown}
+                  className="flex items-center gap-2 text-slate-700 hover:text-slate-900 focus:outline-none"
+                >
+                  {user.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt="User Avatar"
+                      className="h-8 w-8 rounded-full"
+                    />
+                  ) : (
+                    <FaUser className="text-lg text-slate-700" />
+                  )}
+                  <span>{user.username}</span>
+                </button>
+                {dropdownOpen && (
+                  <ul className="absolute right-0 mt-2 bg-white border border-slate-300 shadow-lg rounded-md w-40">
+                    <li className="px-4 py-2 hover:bg-slate-100 cursor-pointer">
+                      <Link to="/update-profile">Update Profile</Link>
+                    </li>
+                    <li
+                      className="px-4 py-2 hover:bg-slate-100 cursor-pointer"
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </li>
+                  </ul>
+                )}
+              </li>
+            ) : (
+              <li className="text-slate-700 hover:text-slate-900 flex items-center gap-1 cursor-pointer">
+                <FaUser className="text-lg" />
                 <Link to="/register">Register</Link>
-              </span>
-            </li>
+              </li>
+            )}
           </ul>
         </nav>
 
@@ -96,9 +139,26 @@ export default function Header() {
               <li className="text-slate-700 hover:text-slate-900 flex items-center gap-2 cursor-pointer">
                 <FaInfoCircle className="text-lg" /> <span>About</span>
               </li>
-              <li className="text-slate-700 hover:text-slate-900 flex items-center gap-2 cursor-pointer">
-                <FaUser className="text-lg" /> <span>Sign In</span>
-              </li>
+              {user ? (
+                <>
+                  <li
+                    className="text-slate-700 hover:text-slate-900 flex items-center gap-2 cursor-pointer"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </li>
+                  <li className="text-slate-700 hover:text-slate-900 flex items-center gap-2 cursor-pointer">
+                    <Link to="/update-profile">Update Profile</Link>
+                  </li>
+                </>
+              ) : (
+                <li className="text-slate-700 hover:text-slate-900 flex items-center gap-2 cursor-pointer">
+                  <FaUser className="text-lg" />
+                  <span>
+                    <Link to="/register">Register</Link>
+                  </span>
+                </li>
+              )}
             </ul>
           </nav>
         </div>

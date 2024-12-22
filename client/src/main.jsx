@@ -6,12 +6,14 @@ import './index.css';
 import axios from 'axios';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { AuthProvider } from './context-api/authContext.jsx';
 
 axios.defaults.baseURL = "http://localhost:5000/api";
 axios.defaults.withCredentials = true;
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
+    <AuthProvider>
     <BrowserRouter>
       <App />
       <ToastContainer
@@ -27,5 +29,6 @@ createRoot(document.getElementById('root')).render(
       theme="light"
     />
     </BrowserRouter>
+    </AuthProvider>
   </StrictMode>,
 )

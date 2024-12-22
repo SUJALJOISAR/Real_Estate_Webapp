@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { FaGoogle } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+// import axios from 'axios';
 import { toast } from 'react-toastify';
+import { AuthContext } from '../context-api/authContext';
 
 const SignIn = () => {
     const [formdata, setFormData] = useState({
         email: '',
         password: '',
     });
+    const {signIn}=useContext(AuthContext);
 
     const navigate = useNavigate();
 
@@ -25,13 +27,15 @@ const SignIn = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('/auth/signin', formdata);
-            if (response.status === 200) {
+            const {success,message} = await signIn(formdata);
+            if (success) {
                 toast.success('Signed In Successfully');
                 setTimeout(() => {
                     navigate('/');
                 }, 1000);
-            }
+            }else {
+                toast.error(message); // Display error toast for unsuccessful sign-in
+              }
         } catch (error) {
             const errorMessage = error.response && error.response.data.message ? error.response.data.message : 'Something went Wrong.Please try again later';
             toast.error(errorMessage);
