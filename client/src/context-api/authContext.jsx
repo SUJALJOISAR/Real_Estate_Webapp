@@ -2,6 +2,8 @@ import { createContext, useState, useEffect } from "react";
 import PropTypes from "prop-types"; // Import PropTypes
 import axios from "axios";
 import { toast } from "react-toastify";
+import { onAuthStateChanged,signOut as firebaseSignOut } from "firebase/auth";
+import { auth } from "../firebase/firebase";
 
 //create context
 export const AuthContext = createContext();
@@ -11,22 +13,71 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null); //hold user data
   const [authLoading, setAuthLoading] = useState(true); //Loading state
 
-  //Fetch User data on page load or token refresh
   useEffect(() => {
     const checkAuth = async () => {
-      try {
-        const res = await axios.get("/auth/getUserProfile");
-        setUser(res.data.user);
-      } catch (error) {
-        console.error("Not authenticated:", error.message);
+      const authToken = localStorage.getItem("token");
+      const firebaseToken = JSON.parse(localStorage.getItem("firebase_token") || "{}");
+  
+      if (authToken) {
+        // Use Axios login
+        try {
+          const res = await axios.get("/auth/getUser", {
+            headers: { Authorization: `Bearer ${authToken}` },
+          });
+          setUser(res.data.user);
+        } catch (error) {
+          console.error("Manual auth_token error:", error.message);
+          localStorage.removeItem("auth_token");
+          setUser(null);
+        }
+      } else if (firebaseToken?.token && firebaseToken.expirationTime > Date.now()) {
+        // Use Firebase login
+        try {
+          const username = firebaseToken.email.split("@")[0];
+          setUser({
+            username,
+            email: firebaseToken.email,
+            token: firebaseToken.token,
+          });
+        } catch (error) {
+          console.error("Firebase token error:", error.message);
+          localStorage.removeItem("firebase_token");
+          setUser(null);
+        }
+      } else {
+        // No valid token
         setUser(null);
-      } finally {
-        setAuthLoading(false);
       }
+      setAuthLoading(false);
     };
-
+  
+    // Listen for Firebase Auth changes
+    const unsubscribeFirebaseAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const token = await firebaseUser.getIdToken();
+        const username = firebaseUser.email.split("@")[0];
+        setUser({
+          username,
+          email: firebaseUser.email,
+          token,
+        });
+        localStorage.setItem(
+          "firebase_token",
+          JSON.stringify({ token, email: firebaseUser.email, expirationTime: Date.now() + 24 * 60 * 60 * 1000 })
+        );
+      } else {
+        setUser(null);
+        localStorage.removeItem("firebase_token");
+      }
+    });
+  
+    // Check authentication on mount
     checkAuth();
+  
+    return () => unsubscribeFirebaseAuth();
   }, []);
+  
+
 
   //Register Function
   const register = async (userData) => {
@@ -51,11 +102,12 @@ export const AuthProvider = ({ children }) => {
 
   //signin function
   const signIn = async (credentials) => {
+    // const token=localStorage.get('token');
     try {
-        const res = await axios.post("/auth/signin", credentials,{withCredentials:true});
-        setUser(res.data.user);
-        localStorage.setItem('token', res.data.token);
-        return {success:true,message:res.data.msg};
+      const res = await axios.post("/auth/signin", credentials, { withCredentials: true });
+      setUser(res.data.user);
+      localStorage.setItem('token', res.data.token);
+      return { success: true, message: res.data.msg };
     } catch (error) {
       console.error(
         "Sign-in error:",
@@ -69,21 +121,25 @@ export const AuthProvider = ({ children }) => {
   };
 
   //signout
-  const signOut = async ()=>{
-      try {
-        await axios.get('/auth/logout',{withCredentials:true});
-        setUser(null);
-        localStorage.removeItem('token');
-        toast.success("Logged out successfully");
-      } catch (error) {
-        toast.error("Logout failed. Please try again.");
-        console.error("Logout Error: ", error);
-      }
+ 
+  // Sign-out
+  const signOut = async () => {
+    try {
+      await axios.get("/auth/logout");
+      firebaseSignOut(auth);
+      localStorage.removeItem("token");
+      localStorage.removeItem("google_token");
+      setUser(null);
+      toast.success("Logged out successfully");
+    } catch (error) {
+      toast.error("Logout failed. Please try again.");
+      console.error("Logout Error:", error);
+    }
   }
 
-  return(
-    <AuthContext.Provider value={{user,register,signIn,signOut,authLoading}}>
-        {children}
+  return (
+    <AuthContext.Provider value={{ user, setUser, register, signIn, signOut, authLoading }}>
+      {children}
     </AuthContext.Provider>
   )
 
@@ -92,5 +148,5 @@ export const AuthProvider = ({ children }) => {
 
 // Add PropTypes validation
 AuthProvider.propTypes = {
-    children: PropTypes.node.isRequired, // Ensure `children` is passed
-  };
+  children: PropTypes.node.isRequired, // Ensure `children` is passed
+};

@@ -1,46 +1,71 @@
-import {useContext, useState} from 'react';
+import { useContext, useState } from 'react';
 import { FaGoogle } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 // import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { AuthContext } from '../context-api/authContext';
+import { GoogleAuthProvider } from 'firebase/auth';
+import { auth } from '../firebase/firebase';
+import { signInWithPopup } from 'firebase/auth';
 
 
 const Register = () => {
-  const [formData,setFormData]= useState({
-    username:'',
-    email:'',
-    password:'',
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
   });
-  const {register} = useContext(AuthContext);
-  const navigate=useNavigate();
+  const { register, setUser } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   //Handle input changes
-  const handleChange = (e) =>{
-   setFormData({
-    ...formData,
-    [e.target.name]:e.target.value
-   });
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   }
 
   //Handle Form Submission
-  const handleSubmit = async (e) =>{
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const {success,message} = await register(formData);
-      if(success){
+      const { success, message } = await register(formData);
+      if (success) {
         toast.success(message);
         setTimeout(() => {
           navigate('/signin');
         }, 1000);
-      }else{
+      } else {
         toast.error(message);
       }
     } catch (error) {
       const errorMessage = error.response && error.response.data.message ? error.response.data.message : 'Something went Wrong.Please try again later';
       toast.error(errorMessage);
     }
+  }
+
+  function googleLogin() {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider).then(async (result) => {
+      if (result.user) {
+        toast.success("User Logged in successfully");
+        const user = result.user;
+        const token = await user.getIdToken(); //Fetch the firebase token
+        const expirationTime = Date.now() + 24 * 60 * 60 * 1000; // 1 day
+        localStorage.setItem('google_token', JSON.stringify({ token, expirationTime }));
+        const username = user.email.split('@')[0]; // Trim username before '@'
+
+        // Update context with authenticated user
+        setUser({
+          username,
+          email: user.email,
+          token
+        });
+      }
+      navigate("/");
+    });
   }
 
   return (
@@ -110,6 +135,7 @@ const Register = () => {
         <button
           type="button"
           className="w-full flex items-center justify-center border border-slate-300 py-2 rounded-lg hover:bg-slate-100 transition duration-200"
+          onClick={googleLogin}
         >
           <FaGoogle className="text-slate-500 mr-2" />
           Continue with Google
