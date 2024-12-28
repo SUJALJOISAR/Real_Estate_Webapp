@@ -54,13 +54,24 @@ const Register = () => {
         const user = result.user;
         const token = await user.getIdToken(); //Fetch the firebase token
         const expirationTime = Date.now() + 24 * 60 * 60 * 1000; // 1 day
-        localStorage.setItem('google_token', JSON.stringify({ token, expirationTime }));
+       
         const username = user.email.split('@')[0]; // Trim username before '@'
+        const avatar= user.photoURL; 
 
+        localStorage.setItem('google_token', JSON.stringify({  
+          token,
+          email: user.email,
+          expirationTime, }));
+        
+        //
+        const providerData = user.providerData[0];
+        console.log(providerData);
+       
         // Update context with authenticated user
         setUser({
           username,
           email: user.email,
+          avatar,
           token
         });
       }

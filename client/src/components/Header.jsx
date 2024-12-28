@@ -74,7 +74,11 @@ export default function Header() {
                     <img
                       src={user.avatar}
                       alt="User Avatar"
+                      style={{ width: "40px", height: "40px", borderRadius: "50%" }}
                       className="h-8 w-8 rounded-full"
+                      onError={(e) => {
+                        e.target.onerror = null; // Prevent infinite loop
+                      }}
                     />
                   ) : (
                     <FaUser className="text-lg text-slate-700" />

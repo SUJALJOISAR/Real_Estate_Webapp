@@ -33,6 +33,10 @@ export const AuthProvider = ({ children }) => {
       } else if (googleToken?.token && googleToken.expirationTime > Date.now()) {
         // Use Firebase login
         try {
+          const { email } = googleToken; // Destructure Google token data
+        if (!email) {
+          throw new Error("Email is missing in Google token.");
+        }
           const username = googleToken.email.split("@")[0];
           setUser({
             username,
@@ -56,9 +60,11 @@ export const AuthProvider = ({ children }) => {
       if (firebaseUser) {
         const token = await firebaseUser.getIdToken();
         const username = firebaseUser.email.split("@")[0];
+        const avatar = firebaseUser.photoURL;
         setUser({
           username,
           email: firebaseUser.email,
+          avatar,
           token,
         });
         localStorage.setItem(
