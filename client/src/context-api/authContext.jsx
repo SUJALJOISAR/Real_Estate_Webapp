@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       const authToken = localStorage.getItem("token");
-      const firebaseToken = JSON.parse(localStorage.getItem("firebase_token") || "{}");
+      const googleToken = JSON.parse(localStorage.getItem("google_token") || "{}");
   
       if (authToken) {
         // Use Axios login
@@ -30,18 +30,18 @@ export const AuthProvider = ({ children }) => {
           localStorage.removeItem("auth_token");
           setUser(null);
         }
-      } else if (firebaseToken?.token && firebaseToken.expirationTime > Date.now()) {
+      } else if (googleToken?.token && googleToken.expirationTime > Date.now()) {
         // Use Firebase login
         try {
-          const username = firebaseToken.email.split("@")[0];
+          const username = googleToken.email.split("@")[0];
           setUser({
             username,
-            email: firebaseToken.email,
-            token: firebaseToken.token,
+            email: googleToken.email,
+            token: googleToken.token,
           });
         } catch (error) {
-          console.error("Firebase token error:", error.message);
-          localStorage.removeItem("firebase_token");
+          console.error("Google token error:", error.message);
+          localStorage.removeItem("google_token");
           setUser(null);
         }
       } else {
@@ -62,12 +62,12 @@ export const AuthProvider = ({ children }) => {
           token,
         });
         localStorage.setItem(
-          "firebase_token",
+          "google_token",
           JSON.stringify({ token, email: firebaseUser.email, expirationTime: Date.now() + 24 * 60 * 60 * 1000 })
         );
       } else {
         setUser(null);
-        localStorage.removeItem("firebase_token");
+        localStorage.removeItem("google_token");
       }
     });
   
