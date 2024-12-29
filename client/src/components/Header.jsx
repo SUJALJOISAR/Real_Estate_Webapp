@@ -88,7 +88,7 @@ export default function Header() {
                 {dropdownOpen && (
                   <ul className="absolute right-0 mt-2 bg-white border border-slate-300 shadow-lg rounded-md w-40">
                     <li className="px-4 py-2 hover:bg-slate-100 cursor-pointer">
-                      <Link to="/update-profile">Update Profile</Link>
+                      <Link to="/updateprofile">Update Profile</Link>
                     </li>
                     <li
                       className="px-4 py-2 hover:bg-slate-100 cursor-pointer"
@@ -152,7 +152,7 @@ export default function Header() {
                     Logout
                   </li>
                   <li className="text-slate-700 hover:text-slate-900 flex items-center gap-2 cursor-pointer">
-                    <Link to="/update-profile">Update Profile</Link>
+                    <Link to="/updateprofile">Update Profile</Link>
                   </li>
                 </>
               ) : (

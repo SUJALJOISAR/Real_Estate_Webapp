@@ -6,21 +6,59 @@ import Header from './components/Header';
 import Signin from './pages/Signin';
 import { useContext } from 'react';
 import { AuthContext } from './context-api/authContext';
+import UpdateProfile from './pages/UpdateProfile';
+import PropTypes from 'prop-types';
 
+function ProtectedRoute({ children }) {
+  const { user } = useContext(AuthContext);
+  return user ? children : <Navigate to="/register" />;
+}
 
 function App() {
-  const {user}= useContext(AuthContext);
+  const { user } = useContext(AuthContext);
+
   return (
     <>
       <Header />
       <Routes>
-      <Route path="/" element={user ? <Home /> : <Navigate to="/register" />} />
+        {/* Protected Routes */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <ProtectedRoute>
+              <About />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/updateprofile"
+          element={
+            <ProtectedRoute>
+              <UpdateProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Public Routes */}
         <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
         <Route path="/signin" element={!user ? <Signin /> : <Navigate to="/" />} />
-        <Route path="/about" element={<About/>} />
       </Routes>
     </>
-  )
+  );
 }
+
+// Add PropTypes validation
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
 
 export default App

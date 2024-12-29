@@ -7,6 +7,13 @@ config();
 import appRouter from './routes/userroute.js';
 import authRouter from './routes/authroutes.js';
 import cookieParser from 'cookie-parser';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+
+// Create __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -16,6 +23,7 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   }));
+app.use('/user-images', express.static(path.join(__dirname, 'user-images'))); // Ensure the path is correct
 app.use(morgan("dev"))
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
