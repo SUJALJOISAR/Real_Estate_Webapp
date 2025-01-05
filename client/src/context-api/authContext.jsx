@@ -125,8 +125,6 @@ export const AuthProvider = ({ children }) => {
       };
     }
   };
-
-  //signout
  
   // Sign-out
   const signOut = async () => {

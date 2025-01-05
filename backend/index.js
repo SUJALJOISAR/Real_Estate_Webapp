@@ -24,6 +24,7 @@ app.use(cors({
     credentials: true,
   }));
 app.use('/user-images', express.static(path.join(__dirname, 'user-images'))); // Ensure the path is correct
+console.log('Serving user-images at /user-images');
 app.use(morgan("dev"))
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));

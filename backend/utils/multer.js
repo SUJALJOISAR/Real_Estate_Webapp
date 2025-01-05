@@ -1,17 +1,22 @@
-const express = require("express");
-const multer = require("multer");
-const path = require("path");
+import multer from "multer";
+import path from "path";
+import { fileURLToPath } from "url";
 
-const router = express.Router();
+// Get the directory name of the current file (using ES module syntax)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Configure multer for storing images in user-images folder
+// Configure multer storage
 const storage = multer.diskStorage({
-    destination: path.join(__dirname, "../user-images"), // Set destination folder
+    destination: path.join(__dirname, "../user-images"), // Folder where avatars will be stored
     filename: (req, file, cb) => {
-      const uniqueName = `${Date.now()}-${file.originalname}`;
-      cb(null, uniqueName);
+        // Create a unique filename based on the current timestamp and original file name
+        const uniqueName = `${Date.now()}-${file.originalname}`;
+        cb(null, uniqueName);
     },
-  });
-  
-  const upload = multer({ storage });
-  
+});
+
+// Set up multer with the defined storage configuration
+const upload = multer({ storage });
+
+export default upload;

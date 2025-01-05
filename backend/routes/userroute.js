@@ -1,26 +1,12 @@
-import {Router} from "express";
-import { uploadAvatar } from "../controllers/usercontroller.js";
-import multer from "multer";
-import path from "path";
-import { fileURLToPath } from "url";
+import { Router } from "express";
+import { updateProfile } from "../controllers/usercontroller.js"; // Controller for handling avatar upload
+import upload from "../utils/multer.js"; // Import multer configuration
+import { authenticateToken } from "../utils/validator.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const appRouter = Router();
 
-const appRouter =Router();
-
-// Configure multer for storing images
-const storage = multer.diskStorage({
-    destination: path.join(__dirname, "../user-images"), // Destination folder
-    filename: (req, file, cb) => {
-      const uniqueName = `${Date.now()}-${file.originalname}`;
-      cb(null, uniqueName);
-    },
-  });
-  
-  const upload = multer({ storage });
-  
-  // Define the route for uploading avatar
-  appRouter.post("/uploadavatar", upload.single("avatar"), uploadAvatar);
+// Define the route for uploading avatar
+// appRouter.post("/uploadavatar",authenticateToken,uploadAvatar);
+appRouter.put('/updateprofile',authenticateToken,upload.single("avatar"),updateProfile);
 
 export default appRouter;

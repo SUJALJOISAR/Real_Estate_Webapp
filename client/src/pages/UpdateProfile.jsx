@@ -6,63 +6,114 @@ import { FaEdit } from "react-icons/fa"; // Icon for editing avatar
 
 const ProfilePage = () => {
     const { user, setUser } = useContext(AuthContext); // Getting user context
-    const [avatar, setAvatar] = useState(user?.avatar); // Default avatar if none
     const [username, setUsername] = useState(user?.username || "");
+    const [avatar, setAvatar] = useState(user?.avatar || "");
     const [email, setEmail] = useState(user?.email || "");
     const [password, setPassword] = useState(""); // Empty password field
+    const [tempAvatar, setTempAvatar] = useState(null); // For temporary preview
 
     useEffect(() => {
         // If the user data changes, update the state accordingly
         if (user) {
-            setAvatar(user.avatar);
             setUsername(user.username);
             setEmail(user.email);
+            setAvatar(user.avatar);
         }
     }, [user]);
 
-    // Handle avatar update (via Google or Axios login)
-    const handleAvatarUpdate = async (e) => {
-        // Logic to update avatar using Google or Axios login (you can open a modal or redirect to a file upload)
+    // console.log("ProfilePage user:", user);
+    // console.log("ProfilePage avatar outside:",user.avatar);
+
+    const handleAvatarChange = (e) => {
         const file = e.target.files[0];
-        if (!file) return;
-
-        const formData = new FormData();
-        formData.append("avatar", file);
-
-        try {
-            const response = await axios.post("/user/uploadavatar", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
-
-            // Log the response to debug
-            console.log("Upload Response:", response.data);
-
-            //update the user's avatar in the frontend
-             const updatedAvatar = `http://localhost:5000${response.data.avatarUrl}`;
-            setAvatar(updatedAvatar);
-            setUser({ ...user, avatar: updatedAvatar });
-            toast.success("Avatar updated successfully!");
-        } catch (error) {
-            toast.error("Error uploading avatar.", error);
+        if (file) {
+            setTempAvatar(URL.createObjectURL(file)); // Create a temporary preview URL
         }
     };
 
-    // Handle profile update
-    const handleUpdateProfile = async () => {
+    const handleUpdateProfile = async (e) => {
         try {
-            const response = await axios.put("/api/update-profile", {
+            let avatarUrl = avatar; // Keep existing avatar if not updated
+            console.log("avatarURL inside:",avatarUrl);
+            // const file = e.target?.files?.[0]; // Check if a file is being uploaded
+
+            // Log to check if the file is selected
+            // console.log("File selected:", file);
+
+            // If a new avatar is uploaded, handle avatar upload
+            // if (tempAvatar) {
+            //     const formData = new FormData();
+            //     formData.append("username", username); // Append username
+            //     formData.append("email", email);       // Append email
+            //     if (password) {
+            //         formData.append("password", password); // Append password if not empty
+            //     }
+            //     if (file) {
+            //         // setTempAvatar(URL.createObjectURL(file)); // Set temporary avatar preview
+            //         formData.append("avatar", file); // Append avatar if uploaded
+            //     }
+
+            if (tempAvatar) {
+                const formData = new FormData();
+                formData.append("username", username); // Append username
+                formData.append("email", email);       // Append email
+                if (password) {
+                    formData.append("password", password); // Append password if provided
+                }
+    
+                const fileInput = document.getElementById("avatarUpload");
+                if (fileInput?.files?.[0]) {
+                    formData.append("avatar", fileInput.files[0]); // Append the selected avatar file
+                }
+                
+                // Log form data before sending
+                console.log("FormData being sent:", formData);
+
+                // Upload avatar to the backend
+                const avatarResponse = await axios.put("/user/updateprofile", formData, {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                });
+
+                // Log the response from the backend
+                console.log("Avatar Upload Response:", avatarResponse.data);
+
+                 // Update avatar URL
+                avatarUrl = `http://localhost:5000${avatarResponse.data.avatarUrl}`;
+            }
+
+            // Update user profile details (username, email, password, and avatar)
+            const response = await axios.put("/user/updateprofile", {
                 username,
                 email,
-                password, // Don't send the password if it's empty
+                password: password || undefined, // Don't send the password if it's empty
+                avatar: avatarUrl, // Send updated avatar URL to the backend
             });
-            setUser(response.data.user); // Update user context
-            toast.success("Profile updated successfully!");
+
+            // Log the profile update response
+            console.log("Profile Update Response:", response.data);
+
+            if (response.data.success) {
+                const updatedUser = response.data.user;
+
+                // Update user context and ensure avatar is updated properly
+                setUser((prevUser) => ({
+                    ...prevUser,
+                    ...updatedUser,
+                    avatar: updatedUser.avatar || prevUser.avatar, // Fallback to existing avatar if not updated
+                }));
+
+                setTempAvatar(null); // Clear temporary avatar
+                toast.success("Profile updated successfully!");
+            }
         } catch (error) {
-            toast.error("Error updating profile.", error);
+            console.error("Error updating profile:", error);
+            toast.error("Error updating profile.");
         }
     };
+
+
 
     // Handle create listing action
     const handleCreateListing = () => {
@@ -92,9 +143,9 @@ const ProfilePage = () => {
                 <div className="flex justify-center mb-6">
                     <div className="relative w-32 h-32 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center cursor-pointer">
                         <label htmlFor="avatarUpload" className="w-full h-full">
-                            {avatar ? (
+                            {tempAvatar || avatar ? (
                                 <img
-                                    src={avatar}
+                                    src={tempAvatar || avatar}
                                     alt=""
                                     className="w-full h-full object-cover opacity-80 hover:opacity-100"
                                 />
@@ -112,7 +163,7 @@ const ProfilePage = () => {
                             type="file"
                             accept="image/*"
                             className="hidden"
-                            onChange={handleAvatarUpdate}
+                            onChange={handleAvatarChange}
                         />
                     </div>
                 </div>
