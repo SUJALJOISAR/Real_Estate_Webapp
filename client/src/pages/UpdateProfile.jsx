@@ -35,23 +35,6 @@ const ProfilePage = () => {
         try {
             let avatarUrl = avatar; // Keep existing avatar if not updated
             console.log("avatarURL inside:",avatarUrl);
-            // const file = e.target?.files?.[0]; // Check if a file is being uploaded
-
-            // Log to check if the file is selected
-            // console.log("File selected:", file);
-
-            // If a new avatar is uploaded, handle avatar upload
-            // if (tempAvatar) {
-            //     const formData = new FormData();
-            //     formData.append("username", username); // Append username
-            //     formData.append("email", email);       // Append email
-            //     if (password) {
-            //         formData.append("password", password); // Append password if not empty
-            //     }
-            //     if (file) {
-            //         // setTempAvatar(URL.createObjectURL(file)); // Set temporary avatar preview
-            //         formData.append("avatar", file); // Append avatar if uploaded
-            //     }
 
             if (tempAvatar) {
                 const formData = new FormData();
@@ -65,7 +48,7 @@ const ProfilePage = () => {
                 if (fileInput?.files?.[0]) {
                     formData.append("avatar", fileInput.files[0]); // Append the selected avatar file
                 }
-                
+
                 // Log form data before sending
                 console.log("FormData being sent:", formData);
 

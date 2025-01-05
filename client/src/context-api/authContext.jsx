@@ -38,6 +38,18 @@ export const AuthProvider = ({ children }) => {
           throw new Error("Email is missing in Google token.");
         }
           const username = googleToken.email.split("@")[0];
+          // const avatar = googleToken.photoURL;
+
+          // //save avatar to backend
+          // const avatarName=`google-${username}-${Date.now()}.jpg`;
+          // const avatarResponse = await axios.post('/user/uploadGoogleAvatar',{
+          //   avatarUrl : avatar,
+          //   avatarName
+          // });
+
+          //  // Once avatar is stored, update the user state with the avatar URL from the backend
+          //  const avatarUrl = `http://localhost:5000/user-images/${avatarName}`;
+
           setUser({
             username,
             email: googleToken.email,
@@ -61,12 +73,23 @@ export const AuthProvider = ({ children }) => {
         const token = await firebaseUser.getIdToken();
         const username = firebaseUser.email.split("@")[0];
         const avatar = firebaseUser.photoURL;
+
+        // //save avatar to backend
+        // const avatarName=`google-${username}-${Date.now()}.jpg`;
+        // const avatarResponse = await axios.post('/user/uploadGoogleAvatar',{
+        //   avatarUrl : avatar,
+        //   avatarName
+        // });
+
+        //  // Once avatar is stored, update the user state with the avatar URL from the backend
+        //  const avatarUrl = `http://localhost:5000/user-images/${avatarName}`;
         setUser({
           username,
           email: firebaseUser.email,
           avatar,
           token,
         });
+
         localStorage.setItem(
           "google_token",
           JSON.stringify({ token, email: firebaseUser.email, expirationTime: Date.now() + 24 * 60 * 60 * 1000 })

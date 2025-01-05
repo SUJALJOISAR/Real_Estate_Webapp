@@ -147,3 +147,7 @@ export const updateProfile = async (req, res) => {
     });
   }
 };
+
+export const googleAvatarUpload = async (req,res) =>{
+  
+}
