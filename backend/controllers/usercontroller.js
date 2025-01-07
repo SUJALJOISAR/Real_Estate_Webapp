@@ -148,6 +148,61 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-export const googleAvatarUpload = async (req,res) =>{
-  
+// export const googleAvatarUpload = async (req,res) =>{
+
+// }
+
+export const deleteAccount = async (req,res) =>{
+  try {
+    //extract the user id from the authenticated token
+    const userId = req.user.id;
+
+    //connect to the database
+    const db= await connectDatabase();
+
+    //check if the user exists
+    const checkQuery= `SELECT * FROM users WHERE id=?`;
+    db.query(checkQuery,[userId],(err,result)=>{
+      if(err){
+        console.error("Database query error:", err);
+        return res.status(500).json({
+          success: false,
+          msg: "Database query error",
+        });
+      }
+
+      if(result.length === 0){
+        return res.status(404).json({
+          success: false,
+          msg: "User not found",
+        });
+      }
+
+      //delete the user account
+      const deleteUserQuery = `DELETE FROM users WHERE id = ?`;
+      db.query(deleteUserQuery, [userId], (err, result) => {
+        if (err) {
+          console.error("Error deleting account:", err);
+          return res.status(500).json({
+            success: false,
+            msg: "Error deleting account",
+          });
+        }
+
+         // Clear the authentication cookie
+         res.clearCookie(process.env.COOKIE_NAME);
+        
+        return res.status(200).json({
+          success:true,
+          msg: "Account deleted successfully"
+        });
+      });
+    });
+  } catch (error) {
+    console.error("Server Error:", error.message);
+    return res.status(500).json({
+      success: false,
+      msg: "Internal server error",
+    });
+  }
 }

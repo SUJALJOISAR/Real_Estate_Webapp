@@ -8,6 +8,7 @@ import { useContext } from 'react';
 import { AuthContext } from './context-api/authContext';
 import UpdateProfile from './pages/UpdateProfile';
 import PropTypes from 'prop-types';
+import CreateListing from './pages/CreateListing';
 
 function ProtectedRoute({ children }) {
   const { user } = useContext(AuthContext);
@@ -46,7 +47,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-
+         <Route
+          path="/createListing"
+          element={
+            <ProtectedRoute>
+              <CreateListing />
+            </ProtectedRoute>
+          }
+        />
         {/* Public Routes */}
         <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
         <Route path="/signin" element={!user ? <Signin /> : <Navigate to="/" />} />

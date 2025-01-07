@@ -6,9 +6,11 @@ import morgan from 'morgan';
 config();
 import appRouter from './routes/userroute.js';
 import authRouter from './routes/authroutes.js';
+import listingRouter from './routes/listingroutes.js';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
 
 
 // Create __dirname equivalent for ES modules
@@ -36,6 +38,7 @@ connectDatabase();
 //for routes
 app.use('/api/user',appRouter); //like localhost:5000/api/user/test
 app.use('/api/auth',authRouter); //like localhost:5000/api/auth/signup
+app.use('/api/listing',listingRouter); 
 
 const PORT = process.env.PORT || 5000;
 

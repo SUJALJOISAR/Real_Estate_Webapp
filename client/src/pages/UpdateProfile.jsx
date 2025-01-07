@@ -1,8 +1,10 @@
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect} from "react";
 import { AuthContext } from "../context-api/authContext"; // Assuming you have this context
 import { toast } from "react-toastify"; // For displaying success/error messages
 import axios from "axios";
 import { FaEdit } from "react-icons/fa"; // Icon for editing avatar
+import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase/firebase";
 
 const ProfilePage = () => {
     const { user, setUser } = useContext(AuthContext); // Getting user context
@@ -11,6 +13,8 @@ const ProfilePage = () => {
     const [email, setEmail] = useState(user?.email || "");
     const [password, setPassword] = useState(""); // Empty password field
     const [tempAvatar, setTempAvatar] = useState(null); // For temporary preview
+    const navigate=useNavigate();
+
 
     useEffect(() => {
         // If the user data changes, update the state accordingly
@@ -96,24 +100,38 @@ const ProfilePage = () => {
         }
     };
 
-
-
-    // Handle create listing action
-    const handleCreateListing = () => {
-        // Redirect to create listing page or open modal
-        console.log("Navigate to create listing page");
-    };
-
-    // Handle delete account action
     const handleDeleteAccount = async () => {
-        // try {
-        //   const response = await axios.delete("/api/delete-account");
-        //   toast.success("Account deleted successfully.");
-        //   setUser(null); // Clear user data after deletion
-        // } catch (error) {
-        //   toast.error("Error deleting account.",error);
-        // }
+        try {
+            if (user?.token) {
+                const googleToken = JSON.parse(localStorage.getItem("google_token") || "{}");
+    
+                if (googleToken?.token && googleToken.expirationTime > Date.now()) {
+                    // Google user: Delete Firebase account
+                    const firebaseUser = auth.currentUser;
+                    if (firebaseUser) {
+                        await firebaseUser.delete();
+                        console.log("Google user deleted from Firebase");
+                    }
+                } else {
+                    // Manual user: Delete from backend
+                    const response = await axios.delete("/user/deleteAccount", {
+                        headers: { Authorization: `Bearer ${localStorage.getItem("auth_token")}` },
+                    });
+                    console.log(response.data);
+                }
+            }
+    
+            toast.success("Account deleted successfully.");
+            setUser(null); // Clear user state
+            localStorage.removeItem("auth_token");
+            localStorage.removeItem("google_token");
+            navigate("/"); // Redirect to homepage
+        } catch (error) {
+            console.error("Error deleting account:", error);
+            toast.error("Error deleting account.");
+        }
     };
+    
 
     return (
         <div className="flex justify-center items-center min-h-screen bg-gray-50 py-6 px-4">
@@ -196,7 +214,7 @@ const ProfilePage = () => {
                         Update Profile
                     </button>
                     <button
-                        onClick={handleCreateListing}
+                        onClick={()=>navigate("/createListing")}
                         className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none"
                     >
                         Create Listing
