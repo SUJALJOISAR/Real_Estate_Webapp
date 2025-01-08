@@ -1,6 +1,6 @@
 import { connectDatabase } from "../db/connection.js";
 import fs from "fs";
-import path from "path";
+import path, { resolve } from "path";
 import { fileURLToPath } from "url";
 
 // Define __dirname for ESM
@@ -191,43 +191,34 @@ export const deletelisting = async (req, res) => {
   db.query(getImageQuery, [id, userId], (err, results) => {
     if (err) {
       console.error("Error fetching listing image data:", err);
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: "Database error while fetching image data.",
-        });
+      return res.status(500).json({
+        success: false,
+        message: "Database error while fetching image data.",
+      });
     }
 
     if (results.length === 0) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message:
-            "Listing not found",
-        });
+      return res.status(404).json({
+        success: false,
+        message: "Listing not found",
+      });
     }
 
     console.log(results);
 
     //Parse the JSON array of image file names
     const imageUrls = results[0].image_urls;
-    
+
     // Extract the folder path (assumes all images are in the same folder)
     const folderPath = path.join(
-        __dirname,
-        "..",
-        path.dirname(imageUrls[0]) // Get folder path from the first image
-      );
+      __dirname,
+      "..",
+      path.dirname(imageUrls[0]) // Get folder path from the first image
+    );
 
     //Delete all image files from the filesystem
     const deletePromises = imageUrls.map((imageName) => {
-      const imagePath = path.join(
-        __dirname,
-        `..`,
-        imageName
-      );
+      const imagePath = path.join(__dirname, `..`, imageName);
 
       return new Promise((resolve, reject) => {
         fs.unlink(imagePath, (err) => {
@@ -244,15 +235,14 @@ export const deletelisting = async (req, res) => {
     // Wait for all image deletions to complete
     Promise.allSettled(deletePromises)
       .then(() => {
-         // After deleting all files, delete the folder
-         fs.rm(folderPath, { recursive: true, force: true }, (err) => {
-            if (err) {
-              console.error("Error deleting folder:", err);
-            } else {
-              console.log("Folder deleted successfully:", folderPath);
-            }
-          });
-
+        // After deleting all files, delete the folder
+        fs.rm(folderPath, { recursive: true, force: true }, (err) => {
+          if (err) {
+            console.error("Error deleting folder:", err);
+          } else {
+            console.log("Folder deleted successfully:", folderPath);
+          }
+        });
 
         // Proceed to delete the listing from the database
         const deleteQuery =
@@ -267,30 +257,106 @@ export const deletelisting = async (req, res) => {
 
           // Check if a listing was deleted
           if (result.affectedRows === 0) {
-            return res
-              .status(404)
-              .json({
-                success: false,
-                message:
-                  "Listing not found or you don't have permission to delete it.",
-              });
+            return res.status(404).json({
+              success: false,
+              message:
+                "Listing not found or you don't have permission to delete it.",
+            });
           }
 
-          return res
-            .status(200)
-            .json({
-              success: true,
-              message: "Listing and associated images deleted successfully.",
-            });
+          return res.status(200).json({
+            success: true,
+            message: "Listing and associated images deleted successfully.",
+          });
         });
       })
       .catch(() => {
-        return res
-          .status(500)
-          .json({
-            success: false,
-            message: "Error deleting one or more images.",
-          });
+        return res.status(500).json({
+          success: false,
+          message: "Error deleting one or more images.",
+        });
       });
   });
 };
+
+export const getListing = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const username = req.user.username;
+    const listingId = req.params.id;
+
+    // Path to the user's image folder
+    const userImagesPath = path.join(
+      __dirname,
+      `../uploads/${userId}-${username}-images`
+    );
+    console.log(userImagesPath);
+
+    // Check if images folder exists
+    if (!fs.existsSync(userImagesPath)) {
+      return res.status(404).json({
+        success: false,
+        message: "No images found for this user.",
+      });
+    }
+
+    // Get all images files in the folder
+    const images = fs.readdirSync(userImagesPath);
+
+    const db = await connectDatabase();
+    const query = `SELECT * FROM listings WHERE user_ref = ? AND id = ?`;
+
+    return new Promise((resolve, reject) => {
+      db.query(query, [userId, listingId], (err, results) => {
+        if (err) {
+          console.error("Database error:", err);
+          return res.status(500).json({
+            success: false,
+            message: "Database error occurred while fetching the listing.",
+          });
+        }
+
+        // If no listing found for the user with the provided id
+        if (results.length === 0) {
+          return res.status(404).json({
+            success: false,
+            message: "Listing not found for this user.",
+          });
+        }
+
+        const listing = results[0];
+        // Map over the listings and return all images
+        const allImages = images.map((image) => {
+          return `http://localhost:5000/uploads/${userId}-${username}-images/${image}`;
+        });
+
+        return res.status(200).json({
+            success: true,
+            listing: {
+              id: listing.id,
+              name: listing.name,
+              description: listing.description,
+              address: listing.address,
+              type: listing.type,
+              offer: listing.offer,
+              bedrooms: listing.bedrooms,
+              bathrooms: listing.bathrooms,
+              regularPrice: listing.regularPrice,
+              discountPrice: listing.discountPrice,
+              parking: listing.parking,
+              furnished: listing.furnished,
+              images: allImages, // All images related to the listing
+            },
+          });
+      });
+    });
+  } catch (error) {
+    console.error("Error in getListing controller:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error occurred while fetching the listing details.",
+    });
+  }
+};
+
+export const updateListing = async (req, res) => {};

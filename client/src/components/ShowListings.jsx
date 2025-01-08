@@ -26,7 +26,7 @@ const ShowListings = () => {
     },[]);
 
     const handleEdit = ()=>{
-
+        
     }
 
     const handleDelete = async (id)=>{
