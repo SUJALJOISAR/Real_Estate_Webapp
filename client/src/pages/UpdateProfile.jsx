@@ -5,6 +5,7 @@ import axios from "axios";
 import { FaEdit } from "react-icons/fa"; // Icon for editing avatar
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase/firebase";
+import ShowListings from "../components/ShowListings";
 
 const ProfilePage = () => {
     const { user, setUser } = useContext(AuthContext); // Getting user context
@@ -14,6 +15,8 @@ const ProfilePage = () => {
     const [password, setPassword] = useState(""); // Empty password field
     const [tempAvatar, setTempAvatar] = useState(null); // For temporary preview
     const navigate=useNavigate();
+
+    const [showListings,setShowListings]=useState(false);
 
 
     useEffect(() => {
@@ -230,6 +233,17 @@ const ProfilePage = () => {
                         Delete Account
                     </button>
                 </div>
+                
+                <div className="mt-6 text-center">
+                    <button
+                        onClick={() => setShowListings(!showListings)}
+                        className="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                    >
+                        {showListings ? "Hide Listings" : "Show Listings"}
+                    </button>
+                </div>
+
+                {showListings && <ShowListings />}
             </div>
         </div>
     );

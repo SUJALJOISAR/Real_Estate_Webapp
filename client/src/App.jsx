@@ -55,6 +55,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        
         {/* Public Routes */}
         <Route path="/register" element={!user ? <Register /> : <Navigate to="/" />} />
         <Route path="/signin" element={!user ? <Signin /> : <Navigate to="/" />} />
